@@ -1,4 +1,4 @@
-## last.fm discord bot
+# last.fm discord bot
 
 a project for me to learn how to build a discord bot and become familiar with the last.fm API.
 
