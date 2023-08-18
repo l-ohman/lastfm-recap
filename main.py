@@ -1,8 +1,8 @@
-import json
-import discord
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
+import discord
 from fetch import weekly_track_chart
+from embeds import error_embed, top_tracks_embed
 
 
 load_dotenv()
@@ -25,40 +25,26 @@ async def on_message(message):
         return
 
     if message.content.startswith("$lastfm"):
-        # await message.channel.send("Getting your data...")
-
-        # res = weekly_track_chart(username)
-        tracks = parse_res()
-        embed = create_embed_top_tracks("jake6969696969", tracks)
-
-        await message.channel.send(embed=embed)
-
-
-# Converts weekly track chart response into discord message
-def parse_res():
-    with open("example.json", "r") as res:
-        data = json.load(res)
-        tracklist = data["weeklytrackchart"]["track"][:3]
-        return tracklist
-
-
-# Creates embeds for the discord message
-def create_embed_top_tracks(username, tracks):
-    embed = discord.Embed(
-        title=f"{username}'s Top Tracks Last Week", color=0xD91F11, description="")
-    
-    for track in tracks:
-        title = track["name"]
-        artist = track["artist"]["#text"]
-        # int for coverart size = 0:small, 1:medium, 2:large
-        # but it turns out, lastfm doesn't provide valid coverarts in this response anyway...
-        cover_art = track["image"][1]["#text"]
-        play_count = track["playcount"]
-
-        track_details = f"\n**{title}** by **{artist}** — {play_count} plays\n"
-        embed.description += track_details
-
-    return embed
+        args = message.content.split()
+        if (len(args) == 1):
+            embed = error_embed(
+                title="Invalid args", reason="Please provide a username to get a user's top tracks for this week.\nEx: `$lastfm jake6969696969`")
+            await message.channel.send(embed=embed)
+        elif (len(args) > 2):
+            embed = error_embed(
+                title="Invalid args", reason="Too many arguments provided.\nPlease provide a single username to get a users top tracks for this week.\nEx: `$lastfm jake6969696969`")
+            await message.channel.send(embed=embed)
+        else:
+            username = args[1]
+            res = weekly_track_chart(username)
+            embed = discord.Embed()
+            if "error" in res:
+                embed = error_embed(
+                    title="Error contacting Last.FM API", reason=res["message"])
+            else:
+                tracklist = res["weeklytrackchart"]["track"]
+                embed = top_tracks_embed(username, tracklist)
+            await message.channel.send(embed=embed)
 
 
 client.run(discord_token)
