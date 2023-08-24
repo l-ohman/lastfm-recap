@@ -56,17 +56,24 @@ lastfm_red = 0xD91F11
 
 def user_recap(username, tracks):
     embed = discord.Embed(
-        title=f"{username}'s Top Tracks Last Week", color=lastfm_red, description="", url=f"https://www.last.fm/user/{username}")
+        title=f"{username}'s Music This Week", color=lastfm_red, description="", url=f"https://www.last.fm/user/{username}")
 
     # gets data about all tracks
+    artists_map = {}
     total_tracks = 0
     total_listens = 0
     for track in tracks:
+        playcount = int(track["playcount"])
         total_tracks += 1
-        total_listens += int(track["playcount"])
-    footer = f"{username} listened to {total_tracks} unique tracks this week with {total_listens} total listens"
-    embed.set_footer(text=footer)
+        total_listens += playcount
 
+        artist = track["artist"]["#text"]
+        if artist not in artists_map:
+            artists_map[artist] = playcount
+        else:
+            artists_map[artist] += playcount
+
+    embed.description += "**Top Tracks**\n"
     # formats top 3 tracks
     for track in tracks[:3]:
         title = track["name"]
@@ -75,6 +82,19 @@ def user_recap(username, tracks):
 
         track_details = f"- **{title}** by **{artist}** — {play_count} plays\n"
         embed.description += track_details
+
+    artists = [{"artist": k, "count": v} for (k, v) in artists_map.items()]
+    artists.sort(key=lambda x: x["count"], reverse=True)
+    # formats top 3 artists
+    embed.description += "------------------------------------------------------\n**Top Artists**\n"
+    for artist in artists[:3]:
+        name = artist["artist"]
+        count = artist["count"]
+        artist_details = f"**{name}** — {count} plays\n"
+        embed.description += artist_details
+
+    footer = f"_{total_listens} total listens — {total_tracks} unique tracks — {len(artists)} unique artists_"
+    embed.set_footer(text=footer)
 
     return embed
 

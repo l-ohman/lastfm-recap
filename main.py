@@ -1,7 +1,6 @@
 import os
 from dotenv import load_dotenv
 import discord
-from fetch import weekly_track_chart
 from embeds import create_embed
 
 
