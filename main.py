@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 import discord
-from embeds import create_embed
+from embeds import generate_response
 
 
 load_dotenv()
@@ -22,9 +22,18 @@ async def on_ready():
 async def on_message(message):
     if not message.content.startswith("$lastfm"):
         return
+    await message.add_reaction("🔄")
+
+    # actually fetch data and send message
     args = message.content.split()
-    embed = create_embed(args)
-    await message.channel.send(embed=embed)
+    response = generate_response(args)
+    embed = response.embed
+    emoji = response.emoji
+    output_message = await message.channel.send(embed=embed)
+
+    bot_user = output_message.author
+    await message.remove_reaction("🔄", bot_user)
+    await message.add_reaction(emoji)
 
 
 client.run(discord_token)
