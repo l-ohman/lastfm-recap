@@ -19,22 +19,19 @@ def generate_response(args):
 
     # "user" command
     if (command == "user"):
-        if (len(args) > 3):
-            embed = error(title="Too many usernames",
-                          reason="When using the `user` command, please only request one user at a time.\nTo look at multiple users at the same time, use the `compare` command.")
-            return EmbedResponse(embed, "⛔")
+        user_embeds = []
+        for username in args[2:]:
+            res = fetch.weekly_track_chart(username)
 
-        username = args[2]
-        res = fetch.weekly_track_chart(username)
+            if "error" in res:
+                embed = error(title="Error contacting Last.FM API",
+                              reason=res["message"])
+                return EmbedResponse(embed, "⛔")
 
-        if "error" in res:
-            embed = error(title="Error contacting Last.FM API",
-                          reason=res["message"])
-            return EmbedResponse(embed, "⛔")
-
-        tracklist = res["weeklytrackchart"]["track"]
-        embed = user_recap(username, tracklist)
-        return EmbedResponse(embed, "✅")
+            tracklist = res["weeklytrackchart"]["track"]
+            embed = user_recap(username, tracklist)
+            user_embeds.append(EmbedResponse(embed, "✅"))
+        return user_embeds
 
     # todo: "compare" command
     elif (command == "compare"):

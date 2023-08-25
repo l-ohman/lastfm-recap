@@ -1,0 +1,3 @@
+- [ ] "compare" command
+- [ ] user avatars on embed
+- [ ] rewrite how reactions are implemented

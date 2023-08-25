@@ -27,9 +27,17 @@ async def on_message(message):
     # actually fetch data and send message
     args = message.content.split()
     response = generate_response(args)
-    embed = response.embed
-    emoji = response.emoji
-    output_message = await message.channel.send(embed=embed)
+
+    # this is....not good
+    if type(response) is list:
+        emoji = response[0].emoji
+        for embed_res in response:
+            embed = embed_res.embed
+            output_message = await message.channel.send(embed=embed)
+    else:
+        embed = response.embed
+        emoji = response.emoji
+        output_message = await message.channel.send(embed=embed)
 
     bot_user = output_message.author
     await message.remove_reaction("🔄", bot_user)
