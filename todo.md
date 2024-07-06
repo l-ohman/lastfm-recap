@@ -1,9 +1,9 @@
 - [ ] "compare" command
   - [ ] % unique listens of all tracks
   - [ ] % unique artists of all tracks
-  - [ ] total listens
-  - [ ] total tracks
-  - [ ] total artists
-  - [ ] minute count, if that data is available
+  - [x] total listens
+  - [x] total tracks
+  - [x] total artists
+  - [x] minute count, if that data is available (used estimates)
 - [ ] user avatars on embed
 - [ ] rewrite how reactions are implemented

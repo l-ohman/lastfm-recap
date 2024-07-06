@@ -41,9 +41,10 @@ def generate_response(args):
             return EmbedResponse(embed, "⛔")
         # todo: get data for each user (unsure what we will be comparing yet xd)
 
-        embed = error(title="Not yet implemented",
-                      reason="Sorry, the `compare` command hasn't been fully implemented yet.")
-        return EmbedResponse(embed, "😔")
+        usernames = args[2:]
+        embed = user_compare(usernames)
+
+        return EmbedResponse(embed, "✅")
 
     else:
         embed = helper("List of commands")
@@ -118,16 +119,53 @@ def user_recap(username, tracks):
     return embed
 
 
+# this function does not belong here but whatever
+def seconds_to_hours(est_seconds):
+    est_minutes = est_seconds//60
+    
+    est_hours = est_minutes//60
+    est_minutes %= 60
+
+    # xd = lambda x: "0" + str(x) if x<10 else str(x)
+    # est_duration = f"{xd(est_hours)}:{xd(est_minutes)}"
+
+    # i changed my mind on how i want this to be displayed
+    return [est_hours, est_minutes]
+
+
 # some overlap with the `user_recap` fn but eh
 def user_compare(usernames):
-    tracklists = []
+    tracklists = {}
     for user in usernames:
         res = fetch.weekly_track_chart(user)
-        tracklist = res["weeklytrackchart"]["track"]
-        tracklists.append(tracklist)
+        tracklists[user] = res["weeklytrackchart"]["track"]
         sleep(0.5)
 
-    title = usernames.join(", ")
+    title = ", ".join(usernames)
     embed = discord.Embed(
         title=f"Last Week for {title}", color=lastfm_red, description="")
-    pass
+    
+    # add each user to embed
+    for user in usernames:
+        # count listens and artists
+        unique_tracks = scrobbles = 0
+        artists = set()
+        for track in tracklists[user]:
+            unique_tracks += 1
+            scrobbles += int(track["playcount"])
+            artists.add(track["artist"]["#text"])
+        
+        # avg song length on spotify in 2020 was 3:17
+        est_hours, est_mins = seconds_to_hours(scrobbles * 197)
+        
+        embed.description += f"**{user}** — {scrobbles} total listens\n"
+        embed.description += f"- {unique_tracks} unique tracks\n"
+        embed.description += f"- {len(artists)} different artists\n"
+        if est_hours>0:
+            embed.description += f"- {est_hours} hours and {est_mins} minutes of music*\n\n"
+        else:
+            embed.description += f"- {est_mins} of music*\n\n"
+    
+    embed.set_footer(text="*Estimate uses an average song length of 3:17")
+
+    return embed
